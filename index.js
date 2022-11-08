@@ -2,7 +2,7 @@ const express = require('express');
 //const bodyParser = require('body-parser');
 const mssql = require('mssql');
 const app = express();
-const port = 3000;
+const port = 8080;
 
 const config = {
     server: "paas-web-test.database.windows.net",
@@ -86,10 +86,3 @@ app.post('/insertNew', async (req, res) => {
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 });
-
-app.post("/hook", (req, res) => {
-    console.log(req.body, req.query);
-    const alerts = req.body.alerts;
-
-    res.status(200).end();
-})
