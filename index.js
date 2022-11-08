@@ -2,7 +2,7 @@ const express = require('express');
 //const bodyParser = require('body-parser');
 const mssql = require('mssql');
 const app = express();
-const port = 8080;
+const port = 3000;
 
 const config = {
     server: "paas-web-test.database.windows.net",
@@ -40,33 +40,43 @@ const resJson = (code, data, message) => {
 
 //app.use(bodyParser.json())
 
+let connectionPool = null;
+
+const getConnectionPool = async (sql) => {
+    if(connectionPool){
+        return connectionPool.query(sql);
+    }
+    connectionPool = await pool.connect();
+    return connectionPool.query(sql);
+};
+
 app.get('/', async (req, res) => {
     res.status(200).send("Hello world");
 });
 
 app.get('/getCountries', async (req, res) => {
-    let connectionPool = await pool.connect();
-    let result = await connectionPool.query("select top 100 * from countries");
+    let result = await getConnectionPool("select top 100 * from countries");
     console.log("result",result);
     res.status(200).json(resJson(200, { result: result.recordset }, ''));
 });
 
 app.post('/insertNew', async (req, res) => {
     try {
-        let countResult = await connectionPool.query("select count(*) as count from countries");
+        let countResult =  await getConnectionPool("select count(*) as count from countries");
 
         let count = countResult.recordset[0].count;
 
-        await connectionPool.query("insert into countries values(" + (count + 1) + ", 'Campuchia')");
+        await  await getConnectionPool("insert into countries values(" + (count + 1) + ", 'Campuchia')");
 
-        let countResultAfter = await connectionPool.query("select count(*) as count from countries");
+        let countResultAfter = await  await getConnectionPool("select count(*) as count from countries");
 
-        let result = await connectionPool.query("select top 100 * from countries");
+        let result = await  await getConnectionPool("select top 100 * from countries");
 
         res.status(200).json(resJson(200, { result: result.recordset, message: "Query total " + countResultAfter.recordset[0].count }, ''));
 
         console.log("result", result);
     } catch (e) {
+        console.log("result e", e);
         res.status(500).json(resJson(500, '', e));
     }
 });
